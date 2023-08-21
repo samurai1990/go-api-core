@@ -3,3 +3,9 @@
 
 # Environment
 *.env
+
+#vscode debug
+__debug_*
+
+#rsa key
+*.pem

@@ -1,31 +1,19 @@
 package main
 
 import (
-	"accounts/auth"
-	"accounts/models"
-	"accounts/middlewares"
-	
-	"github.com/gin-gonic/gin"
+	"core_api/api"
+	"core_api/utils"
+	"log"
 
 )
 
 func main() {
 
-	models.ConnectDataBase()
+	conf := utils.NewConfig()
+	conf.LoadConfig(".")
 
-	router := gin.Default()
-
-	public := router.Group("/accounts")
-
-	public.POST("/register", auth.Register)
-	public.POST("/login",auth.Login)
-
-
-	protected := router.Group("/accounts/admin")
-	protected.Use(middlewares.JwtAuthMiddleware())
-	protected.GET("/user",auth.CurrentUser)
-
-
-	router.Run(":8080")
+	// store := database.NewCrudHandler()
+	server := api.NewServer(conf.BIND_HOST, conf.BIND_PORT)
+	log.Fatal(server.Start())
 
 }
