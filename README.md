@@ -12,3 +12,7 @@ DB_PORT=3306
 API_SECRET=yoursecretstring
 TOKEN_HOUR_LIFESPAN=1
 ```
+
+## License
+
+The MIT License (MIT) - see LICENSE.md for more details

@@ -13,7 +13,8 @@ import (
 )
 
 type DBHandler struct {
-	HDB *gorm.DB
+	HDB   *gorm.DB
+	Model any
 }
 
 func NewDBHandler() *DBHandler {
@@ -42,6 +43,8 @@ func (H *DBHandler) DBConnection() error {
 		return err
 	}
 	H.HDB = db
-	db.AutoMigrate(&User{})
+	if err := db.AutoMigrate(&User{}); err != nil {
+		return err
+	}
 	return nil
 }

@@ -3,17 +3,36 @@ package api
 import (
 	db "core_api/database"
 	ser "core_api/serializers"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"core_api/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-type SigninBody struct {
+type UserSigninRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type UserCreateRequest struct {
+	*UserSigninRequest
+	IsAdmin bool   `json:"is_admin"`
+	Email   string `json:"email" binding:"required" `
+}
+
+type UserUpdateRequest struct {
+	ID       uuid.UUID `json:"id"`
+	Password string    `json:"password"`
+	IsAdmin  bool      `json:"is_admin"`
+	Email    string    `json:"email"`
+}
+
+type UserRetrieveRequest struct {
+	ID uuid.UUID `uri:"id" binding:"required"`
 }
 
 func HandleGetUsers(c *gin.Context) (*server, error) {
@@ -31,7 +50,8 @@ func HandleGetUsers(c *gin.Context) (*server, error) {
 		serv.ErrorCode = 500
 		return serv, fmt.Errorf("internal server error,during error: %s ", err.Error())
 	}
-	serObj := ser.NewGetSerializer(users)
+
+	serObj := ser.NewSerializer(users)
 	if e := serObj.GetListSerializer(resser); e != nil {
 		serv.ErrorCode = 500
 		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
@@ -43,7 +63,7 @@ func HandleGetUsers(c *gin.Context) (*server, error) {
 
 func Signin(c *gin.Context) (*server, error) {
 
-	var account SigninBody
+	var account *UserSigninRequest
 	serv := &server{
 		ctx: c,
 	}
@@ -54,7 +74,7 @@ func Signin(c *gin.Context) (*server, error) {
 	}
 	userObj := db.NewUser()
 	dbHandler := db.NewDBHandler()
-	user, err := dbHandler.GetDatabaseByName(userObj, account.Username)
+	user, err := dbHandler.GetRecordDatabaseByName(userObj, account.Username)
 	if err != nil {
 		serv.ErrorCode = http.StatusInternalServerError
 		return serv, err
@@ -69,28 +89,21 @@ func Signin(c *gin.Context) (*server, error) {
 	}
 
 	hToken := utils.NewTokenInfo()
-	token, err := hToken.GenerateToken(userObj.Username,userObj.IsAdmin)
+	token, err := hToken.GenerateToken(userObj.Username, userObj.IsAdmin)
 	if err != nil {
 		serv.ErrorCode = http.StatusInternalServerError
 		return serv, fmt.Errorf("sorry, operation generate token failed")
 	}
-	apiKey, err := utils.GenerateApiKey(userObj.Username, userObj.Email)
-	if err != nil {
-		serv.ErrorCode = http.StatusInternalServerError
-		return serv, fmt.Errorf("sorry, operation generate api key failed")
-	}
 
 	signStruct := struct {
 		*db.User
-		Token  string `json:"token"`
-		ApiKey string `json:"api_key"`
+		Token string `json:"token"`
 	}{
-		User:   userObj,
-		Token:  token,
-		ApiKey: apiKey,
+		User:  userObj,
+		Token: token,
 	}
 	resser := ser.NewUserSigninResponse()
-	serObj := ser.NewGetSerializer(signStruct)
+	serObj := ser.NewSerializer(signStruct)
 	if e := serObj.GetSigninSerializer(resser); e != nil {
 		serv.ErrorCode = 500
 		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
@@ -98,4 +111,115 @@ func Signin(c *gin.Context) (*server, error) {
 		serv.data = resser
 		return serv, nil
 	}
+}
+
+func HandleCreateUsers(c *gin.Context) (*server, error) {
+	serv := &server{
+		ctx: c,
+	}
+	var account *UserCreateRequest
+	if err := c.ShouldBind(&account); err != nil {
+		serv.ErrorCode = http.StatusBadRequest
+		return serv, err
+	}
+	userObj := db.NewUser()
+	dbHandler := db.NewDBHandler()
+	dbHandler.Model = account
+	user, err := dbHandler.CreateRecordToDatabase(userObj)
+	if err != nil {
+		serv.ErrorCode = http.StatusInternalServerError
+		return serv, err
+	}
+	resser := ser.NewUserCreateResponse()
+	serObj := ser.NewSerializer(user)
+	if e := serObj.GetCreateSerializer(resser); e != nil {
+		serv.ErrorCode = 500
+		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
+	} else {
+		serv.data = resser
+		serv.ErrorCode = http.StatusCreated
+		return serv, nil
+	}
+}
+
+func HandleRetrieveUsers(c *gin.Context) (*server, error) {
+	serv := &server{
+		ctx: c,
+	}
+
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		serv.ErrorCode = http.StatusBadRequest
+		return serv, errors.New("uuid invalid")
+	}
+	userObj := db.NewUser()
+	dbHandler := db.NewDBHandler()
+	user, err := dbHandler.GetRecordDatabaseByID(userObj, id)
+	if err != nil {
+		serv.ErrorCode = http.StatusNotFound
+		return serv, err
+	}
+	resser := ser.NewUserRetrieveResponse()
+	serObj := ser.NewSerializer(user)
+	if e := serObj.GetRetrieveSerializer(resser); e != nil {
+		serv.ErrorCode = 500
+		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
+	} else {
+		serv.data = resser
+		serv.ErrorCode = http.StatusOK
+		return serv, nil
+	}
+}
+
+func HandleUpdateUsers(c *gin.Context) (*server, error) {
+	var account *UserUpdateRequest
+	serv := &server{
+		ctx: c,
+	}
+
+	if err := c.ShouldBind(&account); err != nil {
+		serv.ErrorCode = http.StatusBadRequest
+		return serv, err
+	}
+
+	if id, err := uuid.Parse(c.Param("id")); err != nil {
+		serv.ErrorCode = http.StatusBadRequest
+		return serv, errors.New("uuid invalid")
+	} else {
+		account.ID = id
+	}
+	userObj := db.NewUser()
+	dbHandler := db.NewDBHandler()
+	dbHandler.Model = account
+	user, err := dbHandler.UpdateRecordToDatabase(userObj)
+	if err != nil {
+		serv.ErrorCode = http.StatusNotFound
+		return serv, err
+	}
+	resser := ser.NewUserUpdateResponse()
+	serObj := ser.NewSerializer(user)
+	if e := serObj.GetUpdateSerializer(resser); e != nil {
+		serv.ErrorCode = 500
+		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
+	} else {
+		serv.data = resser
+		serv.ErrorCode = http.StatusOK
+		return serv, nil
+	}
+}
+
+func HandleDeleteUsers(c *gin.Context) (*server, error) {
+	serv := &server{
+		ctx: c,
+	}
+	id := c.Param("id")
+	userObj := db.NewUser()
+	dbHandler := db.NewDBHandler()
+	err := dbHandler.DeleteRecordFromDatabase(userObj, id)
+	if err != nil {
+		serv.ErrorCode = http.StatusNotFound
+		return serv, err
+	}
+	serv.ErrorCode = http.StatusNoContent
+	return serv, nil
 }
