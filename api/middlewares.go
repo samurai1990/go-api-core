@@ -2,18 +2,15 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func BasicAuthPermission() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uri := c.Request.URL.Path
-
-		if !IsUrlValid(uri) {
-			c.Next()
-			return
-		}
+		uriSplit := strings.Split(c.Request.URL.Path, "/")
+		uri := "/" + uriSplit[1]
 
 		if IsAnyPermission(uri) {
 			c.Next()
@@ -55,15 +52,6 @@ func BasicAuthPermission() gin.HandlerFunc {
 			res.ErrorMessage = "Access Denied,You don't have permission to access"
 			c.AbortWithStatusJSON(res.StatusCode, res)
 		}
-	}
-}
-
-func IsUrlValid(uri string) bool {
-	_, ok := accessibleRoles()[uri]
-	if ok {
-		return true
-	} else {
-		return false
 	}
 }
 
