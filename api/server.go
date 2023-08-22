@@ -49,7 +49,7 @@ func wrapper(f func(c *gin.Context) (*server, error)) gin.HandlerFunc {
 			return
 		} else {
 			res.Data = server.data
-			c.JSON(res.StatusCode, res)
+			c.JSON(server.ErrorCode, res)
 		}
 	}
 }

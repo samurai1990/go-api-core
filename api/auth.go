@@ -40,7 +40,7 @@ func NewAuthentication(c *http.Header) *Authorization {
 func (auth *Authorization) ApiKeyAuth(apiKey string) error {
 	dbHandler := database.NewDBHandler()
 	userObj := database.NewUser()
-	user, err := dbHandler.GetDatabaseByApiKey(userObj, auth.apiKey)
+	user, err := dbHandler.GetRecordDatabaseByApiKey(userObj, auth.apiKey)
 	if err != nil {
 		auth.errorCode = http.StatusUnauthorized
 		return errors.New("invalid API_KEY")
