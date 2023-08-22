@@ -6,7 +6,7 @@ import (
 
 func PathRoutes(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
-	engine.GET("/ping", wrapper(HandlePing))
+	engine.GET("/health", wrapper(HandleHealth))
 	engine.NoRoute(wrapper(HandleNoRoute))
 
 	users := engine.Group("/")
