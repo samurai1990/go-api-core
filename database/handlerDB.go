@@ -52,7 +52,12 @@ func (H *DBHandler) DBConnection() error {
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New()
-
+	crypt := utils.NewCryptoGraphic()
+	if hashedPassword, err := crypt.HashPassword(u.Password); err != nil {
+		return err
+	} else {
+		u.Password = hashedPassword
+	}
 	apiKey, err := utils.GenerateApiKey(u.Username, u.Password, u.Email)
 	if err != nil {
 		return err
