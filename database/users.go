@@ -139,14 +139,14 @@ func (user *User) CreateSuperUser() error {
 	}{
 		Username: "admin",
 		Password: "admin",
-		Email:    "admin@api.co.com",
+		Email:    "admin@api.co",
 		IsAdmin:  true,
 	}
 	_, err := user.CreateRecord(adminUser)
 	if err != nil {
 		return fmt.Errorf("don`t create Super User with during error: %s", err.Error())
 	} else {
-		log.Println("super user created!!!")
+		log.Fatalln("super user created!!!")
 		return nil
 	}
 }
