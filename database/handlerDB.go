@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -47,4 +48,15 @@ func (H *DBHandler) DBConnection() error {
 		return err
 	}
 	return nil
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
+
+	apiKey, err := utils.GenerateApiKey(u.Username, u.Password, u.Email)
+	if err != nil {
+		return err
+	}
+	u.ApiKey = apiKey
+	return
 }
