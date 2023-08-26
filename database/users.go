@@ -3,6 +3,8 @@ package database
 import (
 	"core_api/utils"
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
@@ -85,10 +87,7 @@ func (user *User) CreateRecord(model any) (*User, error) {
 	username := s.Field("Username").Value().(string)
 	password := s.Field("Password").Value().(string)
 	email := s.Field("Email").Value().(string)
-	apiKey, err := utils.GenerateApiKey(username, password, email)
-	if err != nil {
-		return nil, err
-	}
+
 	id, _ := uuid.NewRandom()
 	user = &User{
 		BaseModel: &BaseModel{
@@ -97,10 +96,14 @@ func (user *User) CreateRecord(model any) (*User, error) {
 		Username: username,
 		Password: password,
 		Email:    email,
-		ApiKey:   apiKey,
 		IsAdmin:  s.Field("IsAdmin").Value().(bool),
 	}
-	return user, nil
+	dbHandle := NewDBHandler()
+	if err:=dbHandle.DBConnection();err!=nil{
+		return nil , err
+	}
+	result:=dbHandle.HDB.Create(&user)
+	return user, result.Error
 }
 
 func (user *User) UpdateRecord(model any) (*User, error) {
@@ -125,4 +128,25 @@ func (user *User) UpdateRecord(model any) (*User, error) {
 
 func (user *User) DeleteRecord(id string) error {
 	return errors.New("not found")
+}
+
+func (user *User) CreateSuperUser() error {
+	adminUser := struct {
+		Username string
+		Password string
+		Email    string
+		IsAdmin  bool
+	}{
+		Username: "admin",
+		Password: "admin",
+		Email:    "admin@api.co.com",
+		IsAdmin:  true,
+	}
+	_, err := user.CreateRecord(adminUser)
+	if err != nil {
+		return fmt.Errorf("don`t create Super User with during error: %s", err.Error())
+	} else {
+		log.Println("super user created!!!")
+		return nil
+	}
 }
