@@ -3,14 +3,17 @@
 
 #### set environment 
 ```
-DB_HOST=192.168.10.21                      
-DB_DRIVER=mysql                          
-DB_USER=root
-DB_PASSWORD=root
-DB_NAME=db_test
-DB_PORT=3306
-API_SECRET=yoursecretstring
-TOKEN_HOUR_LIFESPAN=1
+API_DB_HOST=192.168.1.1                  
+API_DB_USER=postgresadmin
+API_DB_PASSWORD=postgresadmin
+API_DB_NAME=db
+API_DB_PORT=5432
+API_SECRET_KEY=example_key_1234
+API_BIND_PORT=8000
+API_BIND_HOST=0.0.0.0
+API_PATH_PRIVATEKEY=private.pem
+API_ADMIN_USERNAME='admin'
+API_ADMIN_PASSWORD='admin'
 ```
 
 ## License
