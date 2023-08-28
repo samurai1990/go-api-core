@@ -22,7 +22,9 @@ func main() {
 		if arg == "createsuperuser" {
 			db := database.NewUser()
 			if err := db.CreateSuperUser(); err != nil {
-				log.Println(err)
+				log.Fatalln(err)
+			} else {
+				return
 			}
 		}
 	}
