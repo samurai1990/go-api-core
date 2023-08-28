@@ -16,3 +16,10 @@ TOKEN_HOUR_LIFESPAN=1
 ## License
 
 The MIT License (MIT) - see LICENSE.md for more details
+
+
+## Usage 
+ create super admin
+ ```bash
+ make createsuperuser
+ ```
