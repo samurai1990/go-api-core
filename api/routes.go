@@ -7,6 +7,7 @@ import (
 func PathRoutes(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	engine.GET("/health", wrapper(HandleHealth))
+	engine.POST("/users/signin/", wrapper(Signin))
 	engine.NoRoute(wrapper(HandleNoRoute))
 
 	users := engine.Group("/")
@@ -17,6 +18,5 @@ func PathRoutes(engine *gin.Engine) {
 		users.GET("/users/:id", wrapper(HandleRetrieveUsers))
 		users.PUT("/users/:id", wrapper(HandleUpdateUsers))
 		users.DELETE("/users/:id", wrapper(HandleDeleteUsers))
-		users.POST("/users/signin/", wrapper(Signin))
 	}
 }

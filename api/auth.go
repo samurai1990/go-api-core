@@ -23,7 +23,6 @@ type Authorization struct {
 func accessibleRoles() map[string][]string {
 	return map[string][]string{
 		"/users":         {"is_admin"},
-		"/users/signin/": {"any"},
 	}
 }
 
