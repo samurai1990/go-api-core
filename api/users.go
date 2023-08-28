@@ -76,7 +76,7 @@ func Signin(c *gin.Context) (*server, error) {
 	dbHandler := db.NewDBHandler()
 	user, err := dbHandler.GetRecordDatabaseByName(userObj, account.Username)
 	if err != nil {
-		serv.ErrorCode = http.StatusInternalServerError
+		serv.ErrorCode = http.StatusUnauthorized
 		return serv, err
 	}
 	userObj = user.(*db.User)
@@ -203,7 +203,7 @@ func HandleUpdateUsers(c *gin.Context) (*server, error) {
 		return serv, fmt.Errorf("internal server error,during error: %s ", e.Error())
 	} else {
 		serv.data = resser
-		serv.ErrorCode = http.StatusOK
+		serv.ErrorCode = http.StatusAccepted
 		return serv, nil
 	}
 }
