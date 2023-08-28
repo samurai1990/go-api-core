@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -52,6 +53,14 @@ func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
 				tx.Statement.SetColumn("Password", hashedPassword)
 			}
 		}
+	}
+	return nil
+}
+
+func (user *User) BeforeDelete(tx *gorm.DB) error {
+	adminUser := viper.GetString("API_ADMIN_USERNAME")
+	if user.Username == adminUser {
+		return errors.New("persmission deny")
 	}
 	return nil
 }

@@ -8,78 +8,45 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/google/uuid"
+	"github.com/spf13/viper"
+	"gorm.io/gorm/clause"
 )
 
 func (user *User) ListRecord() (*[]User, error) {
-	id1, _ := uuid.NewRandom()
-	id2, _ := uuid.NewRandom()
-	users := []User{
-		{
-			BaseModel: &BaseModel{
-				ID: id1,
-			},
-			Username: "samurai",
-			Password: "samurai",
-			Email:    "samurai@com.com",
-			ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-			IsAdmin:  true,
-		},
-		{
-			BaseModel: &BaseModel{
-				ID: id2,
-			},
-			Username: "bob",
-			Password: "bob123456",
-			Email:    "bob@com.com",
-			ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-			IsAdmin:  false,
-		},
+	users := []User{}
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
 	}
-	return &users, nil
+	results := dbHandle.HDB.Find(&users)
+	return &users, results.Error
 }
 
 func (user *User) GetRecordByID(id uuid.UUID) (*User, error) {
-	user = &User{
-		BaseModel: &BaseModel{
-			ID: id,
-		},
-		Username: "samurai",
-		Email:    "samurai@com.com",
-		Password: "samurai",
-		ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-		IsAdmin:  true,
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
 	}
-	return user, nil
+	results := dbHandle.HDB.Find(&user, "id = ?", id)
+	return user, results.Error
 }
 
 func (user *User) GetRecordByName(name string) (*User, error) {
-	id, _ := uuid.NewRandom()
-	user = &User{
-		BaseModel: &BaseModel{
-			ID: id,
-		},
-		Username: "samurai",
-		Password: "858a39db1542daacc92d9bb4fb8b563d35e13833cfc35e4ec2106c2043aa4bfc5a4373350267278dbcb8ee34c214898dfe27ce286b615b74bcb23642a9a067b5",
-		Email:    "samurai@com.com",
-		ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-		IsAdmin:  true,
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
 	}
-	return user, nil
+	result := dbHandle.HDB.First(&user, "username = ?", name)
+	return user, result.Error
 }
 
 func (user *User) GetRecordByApiKey(apiKey string) (*User, error) {
-	id, _ := uuid.NewRandom()
-	user = &User{
-		BaseModel: &BaseModel{
-			ID: id,
-		},
-		Username: "samurai",
-		Password: "858a39db1542daacc92d9bb4fb8b563d35e13833cfc35e4ec2106c2043aa4bfc5a4373350267278dbcb8ee34c214898dfe27ce286b615b74bcb23642a9a067b5",
-		Email:    "samurai@com.com",
-		ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-		IsAdmin:  true,
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
 	}
-	return user, nil
+	result := dbHandle.HDB.First(&user, "api_key = ?", apiKey)
+	return user, result.Error
 }
 
 func (user *User) CreateRecord(model any) (*User, error) {
@@ -99,54 +66,66 @@ func (user *User) CreateRecord(model any) (*User, error) {
 		IsAdmin:  s.Field("IsAdmin").Value().(bool),
 	}
 	dbHandle := NewDBHandler()
-	if err:=dbHandle.DBConnection();err!=nil{
-		return nil , err
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
 	}
-	result:=dbHandle.HDB.Create(&user)
+	result := dbHandle.HDB.Create(&user)
 	return user, result.Error
 }
 
 func (user *User) UpdateRecord(model any) (*User, error) {
-	id, _ := uuid.NewRandom()
-	user = &User{
-		BaseModel: &BaseModel{
-			ID: id,
-		},
-		Username: "alic",
-		Password: "alic12345",
-		Email:    "alice@co.com",
-		ApiKey:   "KjClltV/gjuAwKBVqbpEoLJ9YIfsvQoC9d/csOkhPeLPm5aI9UkLAzgmBNbgvRRb+7DoJx5KIevCbi0FiMzDoQ==",
-		IsAdmin:  true,
-	}
-	sw := utils.NewSchemaData(user)
+	params := NewUser()
+	sw := utils.NewSchemaData(&params)
 	if err := sw.SchemaSwap(model); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return nil, err
+	}
+	if query := dbHandle.HDB.First(&user, "id = ?", params.ID); query.Error != nil {
+		return user, query.Error
+	}
+
+	result := dbHandle.HDB.Model(&user).Clauses(clause.Returning{}).Where("id = ?", params.ID).Updates(params)
+	return user, result.Error
 }
 
 func (user *User) DeleteRecord(id string) error {
-	return errors.New("not found")
+	dbHandle := NewDBHandler()
+	if err := dbHandle.DBConnection(); err != nil {
+		return err
+	}
+	if query := dbHandle.HDB.First(&user, "id = ?", id); query.Error != nil {
+		return errors.New("not found")
+	}
+	result := dbHandle.HDB.Where("id = ?", id).Delete(user)
+	if result.RowsAffected != 1 {
+		return errors.New("delete record failed")
+	}
+	return result.Error
 }
 
 func (user *User) CreateSuperUser() error {
-	adminUser := struct {
+	adminUser := viper.GetString("API_ADMIN_USERNAME")
+	adminPassword := viper.GetString("API_ADMIN_PASSWORD")
+	superUser := struct {
 		Username string
 		Password string
 		Email    string
 		IsAdmin  bool
 	}{
-		Username: "admin",
-		Password: "admin",
-		Email:    "admin@api.co",
+		Username: adminUser,
+		Password: adminPassword,
+		Email:    fmt.Sprintf("%s@api.co", adminUser),
 		IsAdmin:  true,
 	}
-	_, err := user.CreateRecord(adminUser)
+	_, err := user.CreateRecord(superUser)
 	if err != nil {
 		return fmt.Errorf("don`t create Super User with during error: %s", err.Error())
 	} else {
-		log.Fatalln("super user created!!!")
+		log.Println("super user created!!!")
 		return nil
 	}
 }
