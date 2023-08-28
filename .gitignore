@@ -9,3 +9,6 @@ __debug_*
 
 #rsa key
 *.pem
+
+#buid app
+web_api
