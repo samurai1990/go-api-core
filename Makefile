@@ -1,4 +1,4 @@
-.PHONY: build run product createsuperuser
+.PHONY: build run product createsuperuser test
 
 
 all:build
@@ -11,3 +11,5 @@ product:
 	@GIN_MODE=release go run main.go
 createsuperuser:
 	@./web_api createsuperuser
+test:
+	go test --cover ./...
