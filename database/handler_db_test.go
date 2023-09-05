@@ -21,4 +21,5 @@ func TestRsaFundamental(t *testing.T) {
 	h := database.NewDBHandler()
 	assert.Equal(t, h.DBConnection(), nil)
 	assert.NotEqual(t, h.HDB, nil)
+	
 }
