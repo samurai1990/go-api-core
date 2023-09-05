@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	exc "core_api/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -40,11 +41,11 @@ func (H *DBHandler) DBConnection() error {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		log.Print("Failed to connect database")
-		return err
+		return fmt.Errorf("validateInput: %w", exc.ErrConnectionDB)
 	}
 	H.HDB = db
 	if err := db.AutoMigrate(&User{}); err != nil {
-		return err
+		return fmt.Errorf("validateInput: %w", exc.ErrMigrationDB)
 	}
 	return nil
 }

@@ -12,4 +12,5 @@ product:
 createsuperuser:
 	@./web_api createsuperuser
 test:
-	go test --cover ./...
+	@go clean -testcache
+	@go test --cover ./...
