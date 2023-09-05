@@ -1,13 +1,14 @@
 package database
 
 import (
-	"core_api/utils"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	exc "core_api/errors"
+
+	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -23,9 +24,6 @@ func NewDBHandler() *DBHandler {
 }
 
 func (H *DBHandler) DBConnection() error {
-	conf := utils.NewConfig()
-	conf.LoadConfig(".")
-
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
@@ -36,16 +34,21 @@ func (H *DBHandler) DBConnection() error {
 			Colorful:                  false,         // Disable color
 		},
 	)
+
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
-		conf.DB_HOST, conf.DB_PORT, conf.DB_USER, conf.DB_PASSWORD, conf.DB_NAME)
+		viper.GetString("API_DB_HOST"),
+		viper.GetInt("API_DB_PORT"),
+		viper.GetString("API_DB_USER"),
+		viper.GetString("API_DB_PASSWORD"),
+		viper.GetString("API_DB_NAME"))
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		log.Print("Failed to connect database")
-		return fmt.Errorf("validateInput: %w", exc.ErrConnectionDB)
+		return fmt.Errorf("%w: failed to connect database", exc.ErrDB)
 	}
 	H.HDB = db
 	if err := db.AutoMigrate(&User{}); err != nil {
-		return fmt.Errorf("validateInput: %w", exc.ErrMigrationDB)
+		return fmt.Errorf("%w: migration failed", exc.ErrDB)
 	}
 	return nil
 }
