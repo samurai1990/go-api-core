@@ -30,6 +30,8 @@ func main() {
 	}
 
 	server := api.NewServer(conf.BIND_HOST, conf.BIND_PORT)
-	log.Fatal(server.Start())
-
+	r := server.Setup()
+	if err := r.Run(server.ListenAddr); err != nil {
+		log.Fatalf("not running with error: %s", err.Error())
+	}
 }

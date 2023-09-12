@@ -17,7 +17,7 @@ type WrappedError struct {
 }
 
 type server struct {
-	listenAddr string
+	ListenAddr string
 	ctx        *gin.Context
 	data       any
 	ErrorCode  int `default:"0"`
@@ -67,7 +67,7 @@ func NewApiResponseByArgs(err bool, statusCode int, errorMessage string) *apiRes
 
 func NewServer(listenHost string, listenPort int) *server {
 	return &server{
-		listenAddr: fmt.Sprintf("%s:%d", listenHost, listenPort),
+		ListenAddr: fmt.Sprintf("%s:%d", listenHost, listenPort),
 	}
 }
 
@@ -88,15 +88,11 @@ func HandleNoRoute(c *gin.Context) (*server, error) {
 	}, fmt.Errorf("page %s is not found", uri)
 }
 
-func (s *server) Start() error {
+func (s *server) Setup() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Logger())
 	PathRoutes(router)
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"localhost"})
-	if err := router.Run(s.listenAddr); err != nil {
-		return err
-	} else {
-		return nil
-	}
+	return router
 }
