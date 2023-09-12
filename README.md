@@ -26,3 +26,9 @@ The MIT License (MIT) - see LICENSE.md for more details
  ```bash
  make createsuperuser
  ```
+
+
+### TODO:
+- [ ] test case user api
+- [ ] dockerize api
+- [ ] implement integration test
