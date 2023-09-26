@@ -3,9 +3,12 @@ package main
 import (
 	"core_api/api"
 	"core_api/database"
+	errorCode "core_api/errors"
 	"core_api/utils"
+	"errors"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -22,7 +25,12 @@ func main() {
 		if arg == "createsuperuser" {
 			db := database.NewUser()
 			if err := db.CreateSuperUser(); err != nil {
-				log.Fatalln(err)
+				if errors.Is(err, errorCode.ErrDuplicateKey) {
+					log.Println(strings.Split(err.Error(), ",")[0])
+					return
+				} else {
+					log.Fatalln(err)
+				}
 			} else {
 				return
 			}

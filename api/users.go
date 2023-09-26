@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	// "strconv"
 
 	"core_api/utils"
 
@@ -36,6 +37,9 @@ type UserRetrieveRequest struct {
 }
 
 func HandleGetUsers(c *gin.Context) (*server, error) {
+	// pageStr := c.GetQuery("page")
+	// page, _ := strconv.Atoi(pageStr)
+	// offset := (page - 1) * 10
 
 	userObj := db.NewUser()
 	resser := ser.NewUserGetResponse()
