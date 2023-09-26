@@ -29,6 +29,5 @@ The MIT License (MIT) - see LICENSE.md for more details
 
 
 ### TODO:
-- [ ] test case user api
-- [ ] dockerize api
 - [ ] implement integration test
+- [ ] handle error connetion db in response
