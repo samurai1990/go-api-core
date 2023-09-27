@@ -1,6 +1,8 @@
 package api
 
 import (
+	error_code "core_api/errors"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -29,11 +31,20 @@ func BasicAuthPermission() gin.HandlerFunc {
 			}
 		} else if auth.token != "" {
 			if err := auth.TokenAuth(auth.token); err != nil {
-				res.StatusCode = auth.errorCode
-				res.Error = true
-				res.ErrorMessage = err.Error()
-				c.AbortWithStatusJSON(res.StatusCode, res)
-				return
+				switch {
+				case errors.Is(err, error_code.ErrInternal):
+					res.StatusCode = auth.errorCode
+					res.Error = true
+					res.ErrorMessage = err.Error()
+					c.AbortWithStatusJSON(http.StatusInternalServerError, res)
+					return
+				default:
+					res.StatusCode = auth.errorCode
+					res.Error = true
+					res.ErrorMessage = err.Error()
+					c.AbortWithStatusJSON(http.StatusForbidden, res)
+					return
+				}
 			}
 		} else {
 			res.StatusCode = auth.errorCode

@@ -1,9 +1,13 @@
 package api
 
 import (
+	error_code "core_api/errors"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type apiResponse struct {
@@ -42,11 +46,24 @@ func wrapper(f func(c *gin.Context) (*server, error)) gin.HandlerFunc {
 		res := NewApiResponse()
 		server, err := f(c)
 		if err != nil {
-			res.StatusCode = server.ErrorCode
-			res.Error = true
-			res.ErrorMessage = err.Error()
-			c.JSON(res.StatusCode, res)
-			return
+			switch {
+			case errors.Is(err, gorm.ErrRecordNotFound):
+				res.StatusCode = 3
+				res.ErrorMessage = err.Error()
+				c.JSON(http.StatusNotFound, res)
+				return
+			case errors.Is(err, error_code.ErrCredentials):
+				res.StatusCode = 6
+				res.ErrorMessage = err.Error()
+				c.JSON(http.StatusUnauthorized, res)
+				return
+			default:
+				res.StatusCode = server.ErrorCode
+				res.ErrorMessage = err.Error()
+				res.Error = true
+				c.JSON(res.StatusCode, res)
+				return
+			}
 		} else {
 			res.Data = server.data
 			c.JSON(server.ErrorCode, res)

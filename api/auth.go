@@ -2,6 +2,7 @@ package api
 
 import (
 	"core_api/database"
+	error_code "core_api/errors"
 	"core_api/utils"
 	"errors"
 	"net/http"
@@ -22,7 +23,7 @@ type Authorization struct {
 
 func accessibleRoles() map[string][]string {
 	return map[string][]string{
-		"/users":         {"is_admin"},
+		"/users": {"is_admin"},
 	}
 }
 
@@ -62,30 +63,30 @@ func (auth *Authorization) ApiKeyAuth(apiKey string) error {
 func (auth *Authorization) TokenAuth(token string) error {
 	pieces := strings.SplitN(token, " ", 2)
 	if len(pieces) < 2 {
-		return errors.New("token with incorrect bearer format")
+		return error_code.ErrBearerToken
 	}
 	if pieces[0] != BEARER {
-		auth.errorCode = http.StatusUnauthorized
-		return errors.New("token with incorrect bearer format")
+		auth.errorCode = 4
+		return error_code.ErrBearerToken
 	}
 	crypt := utils.NewCryptoGraphic()
 	tkObj := utils.NewTokenInfo()
 	tkObj.CryptInterface = crypt
 
 	if err := tkObj.CryptInterface.LoadRsaPrivatekey(); err != nil {
-		auth.errorCode = http.StatusInternalServerError
-		return errors.New("internal error")
+		auth.errorCode = 15
+		return error_code.ErrInternal
 	}
 	tkObj.PrivKey = crypt.PrivateKey
 
 	if err := tkObj.TokenDecrypt(pieces[1]); err != nil {
-		auth.errorCode = http.StatusUnauthorized
-		return errors.New("invalid token")
+		auth.errorCode = 4
+		return error_code.ErrInvalidToken
 	}
 
 	if err := tkObj.TokenValid(); err != nil {
-		auth.errorCode = http.StatusUnauthorized
-		return errors.New("invalid token")
+		auth.errorCode = 4
+		return error_code.ErrInvalidToken
 	}
 	auth.role = tkObj.Role
 	auth.user = tkObj.User

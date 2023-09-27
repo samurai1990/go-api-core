@@ -2,13 +2,12 @@ package api
 
 import (
 	db "core_api/database"
+	error_code "core_api/errors"
 	ser "core_api/serializers"
+	"core_api/utils"
 	"errors"
 	"fmt"
 	"net/http"
-	// "strconv"
-
-	"core_api/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -89,7 +88,7 @@ func Signin(c *gin.Context) (*server, error) {
 	ok := crypt.DoPasswordsMatch(userObj.Password, account.Password)
 	if !ok {
 		serv.ErrorCode = http.StatusUnauthorized
-		return serv, fmt.Errorf("sorry, username / password is not correct")
+		return serv, fmt.Errorf("%w,wrong password", error_code.ErrCredentials)
 	}
 
 	hToken := utils.NewTokenInfo()
