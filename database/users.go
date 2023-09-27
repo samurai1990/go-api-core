@@ -131,7 +131,7 @@ func (user *User) CreateSuperUser() error {
 	_, err := user.CreateRecord(superUser)
 	if err != nil {
 		if errors.Is(err, errorCode.ErrDuplicateKey) {
-			return fmt.Errorf("superuser: `%s` is exist, during error:%w",superUser.Username,errorCode.ErrDuplicateKey)
+			return fmt.Errorf("superuser: `%s` is exist, during error:%w", superUser.Username, errorCode.ErrDuplicateKey)
 		} else {
 			return fmt.Errorf("don`t create Super User with during error: %s", err.Error())
 		}
