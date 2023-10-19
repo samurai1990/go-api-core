@@ -10,3 +10,4 @@ var ErrDuplicateKey = errors.New("duplicate key value violates unique constraint
 var ErrCredentials = errors.New("invalide credentials")
 var ErrBearerToken = errors.New("bearer is not valid")
 var ErrInvalidToken = errors.New("invalid token")
+var ErrUserNotFound = errors.New("user do not exist")

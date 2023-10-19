@@ -9,15 +9,17 @@ import (
 )
 
 type config struct {
-	DB_HOST         string `mapstructure:"API_DB_HOST"`
-	DB_USER         string `mapstructure:"API_DB_USER"`
-	DB_PASSWORD     string `mapstructure:"API_DB_PASSWORD"`
-	DB_NAME         string `mapstructure:"API_DB_NAME"`
-	DB_PORT         int    `mapstructure:"API_DB_PORT"`
-	SECRET_KEY      string `mapstructure:"API_SECRET_KEY"`
-	BIND_HOST       string `mapstructure:"API_BIND_HOST"`
-	BIND_PORT       int    `mapstructure:"API_BIND_PORT"`
-	PATH_PRIVATEKEY string `mapstructure:"API_PATH_PRIVATEKEY"`
+	DbHost           string `mapstructure:"API_DB_HOST"`
+	DbUser           string `mapstructure:"API_DB_USER"`
+	DbPassword       string `mapstructure:"API_DB_PASSWORD"`
+	DbName           string `mapstructure:"API_DB_NAME"`
+	DbPort           int    `mapstructure:"API_DB_PORT"`
+	SecretKey        string `mapstructure:"API_SECRET_KEY"`
+	BindHost         string `mapstructure:"API_BIND_HOST"`
+	BindPort         int    `mapstructure:"API_BIND_PORT"`
+	PathPrivatekey   string `mapstructure:"API_PATH_PRIVATEKEY"`
+	ApiAdminUsername string `mapstructure:"API_ADMIN_USERNAME"`
+	ApiAdminPassword string `mapstructure:"API_ADMIN_PASSWORD"`
 }
 
 func NewConfig() *config {
@@ -37,13 +39,13 @@ func (c *config) LoadConfig(path string) error {
 	if err := viper.Unmarshal(&c); err != nil {
 		log.Fatal(err)
 	}
-	if c.BIND_PORT == 0 {
-		c.BIND_PORT = 8080
+	if c.BindPort == 0 {
+		c.BindPort = 8080
 	}
-	if c.BIND_HOST == "" {
-		c.BIND_HOST = "localhost"
+	if c.BindHost == "" {
+		c.BindHost = "localhost"
 	}
-	if _, err := os.Stat(c.PATH_PRIVATEKEY); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(c.PathPrivatekey); errors.Is(err, os.ErrNotExist) {
 		rsaKey := NewCryptoGraphic()
 		if err := rsaKey.GenerateRsaPrivateKey(); err != nil {
 			log.Fatal(err)

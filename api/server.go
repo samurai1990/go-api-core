@@ -48,19 +48,27 @@ func wrapper(f func(c *gin.Context) (*server, error)) gin.HandlerFunc {
 		if err != nil {
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
+				res.Error = true
 				res.StatusCode = 3
 				res.ErrorMessage = err.Error()
 				c.JSON(http.StatusNotFound, res)
 				return
+			case errors.Is(err, error_code.ErrUserNotFound):
+				res.Error = true
+				res.StatusCode = 4
+				res.ErrorMessage = err.Error()
+				c.JSON(http.StatusNotFound, res)
+				return
 			case errors.Is(err, error_code.ErrCredentials):
+				res.Error = true
 				res.StatusCode = 6
 				res.ErrorMessage = err.Error()
 				c.JSON(http.StatusUnauthorized, res)
 				return
 			default:
+				res.Error = true
 				res.StatusCode = server.ErrorCode
 				res.ErrorMessage = err.Error()
-				res.Error = true
 				c.JSON(res.StatusCode, res)
 				return
 			}

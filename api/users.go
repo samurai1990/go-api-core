@@ -79,23 +79,20 @@ func Signin(c *gin.Context) (*server, error) {
 	dbHandler := db.NewDBHandler()
 	user, err := dbHandler.GetRecordDatabaseByName(userObj, account.Username)
 	if err != nil {
-		serv.ErrorCode = http.StatusUnauthorized
-		return serv, err
+		return serv, fmt.Errorf("%w,user not found", error_code.ErrUserNotFound)
 	}
 	userObj = user.(*db.User)
 	crypt := utils.NewCryptoGraphic()
 
 	ok := crypt.DoPasswordsMatch(userObj.Password, account.Password)
 	if !ok {
-		serv.ErrorCode = http.StatusUnauthorized
 		return serv, fmt.Errorf("%w,wrong password", error_code.ErrCredentials)
 	}
 
 	hToken := utils.NewTokenInfo()
 	token, err := hToken.GenerateToken(userObj.Username, userObj.IsAdmin)
 	if err != nil {
-		serv.ErrorCode = http.StatusInternalServerError
-		return serv, fmt.Errorf("sorry, operation generate token failed")
+		return serv, fmt.Errorf("%w,sorry, operation generate token failed", error_code.ErrInternal)
 	}
 
 	signStruct := struct {

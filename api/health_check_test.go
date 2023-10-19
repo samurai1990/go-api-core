@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHealthRoute(t *testing.T) {
+func TestHealthApi(t *testing.T) {
 	serv := api.NewServer("127.0.0.1", 80)
 	router := serv.Setup()
 	w := httptest.NewRecorder()
