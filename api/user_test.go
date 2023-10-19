@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSigninigUserSuccess(t *testing.T) {
+func login() *httptest.ResponseRecorder {
 	serv := api.NewServer("127.0.0.1", 80)
 	router := serv.Setup()
 	w := httptest.NewRecorder()
@@ -25,17 +25,23 @@ func TestSigninigUserSuccess(t *testing.T) {
 	}
 
 	reqBodyJson, _ := json.Marshal(reqUser)
-
 	reqBody := strings.NewReader(string(reqBodyJson))
+
 	req := httptest.NewRequest("POST", "/users/signin/", reqBody)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
-	res := SwapResponseToMapStruct(w.Body.Bytes())
 
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, true, CheckBodyOkErrors(res))
+	return w
+}
 
-	jsonData, err := json.Marshal(res["data"])
+func TestSigninigUserSuccess(t *testing.T) {
+	result := login()
+	assert.Equal(t, 200, result.Code)
+
+	resBody := SwapResponseToMapStruct(result.Body.Bytes())
+	assert.Equal(t, true, CheckBodyOkErrors(resBody))
+
+	jsonData, err := json.Marshal(resBody["data"])
 	if err != nil {
 		t.Error(err)
 	}
